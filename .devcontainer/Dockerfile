@@ -11,3 +11,4 @@ COPY requirements.txt /tmp/
 
 # requirements.txtにリストされたパッケージをインストール
 RUN pip install -r /tmp/requirements.txt
+# CMD ["chainlit", "run", "app.py","-w"]
