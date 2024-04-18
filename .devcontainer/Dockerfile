@@ -12,4 +12,4 @@ COPY requirements.txt /tmp/
 # requirements.txtにリストされたパッケージをインストール
 RUN pip install -r /tmp/requirements.txt
 
-RUN chainlit run app.py
+RUN chainlit run app.py -w
