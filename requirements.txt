@@ -1,2 +1,4 @@
 chainlit
 requests
+openai==0.28
+azure-search-documents==11.6.0b3
