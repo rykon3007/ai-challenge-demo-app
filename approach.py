@@ -84,10 +84,10 @@ def query_generation(query: str) -> str:
 def search(query: str) -> list[str]:
     # search_wikipedia_full_response = search_wikipedia_full_client.search(query,
     #                                 query_language="ja-JP",
-    #                                 top=2)
+    #                                 top=5)
     search_wikipedia_chunked_response = search_wikipedia_chunked_client.search(query,
                                     query_language="ja-JP",
-                                    top=2)
+                                    top=5) # 5ドキュメントくらいかき集める問いがあった気がするので5
     search_products_response = search_products_client.search(query,
                                     query_language="ja-JP",
                                     top=2)
