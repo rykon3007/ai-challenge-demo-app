@@ -94,7 +94,7 @@ def search(query: str) -> list[str]:
     search_wikipedia_chunked_response = search_wikipedia_chunked_client.search(query,
                                     query_language="ja-JP",
                                     query_type=QueryType.SEMANTIC,
-                                    semantic_configuration_name="wikipedia-chunked-csv-index-semantic",
+                                    semantic_configuration_name="wikipedia-chunked-csv-index-semantic-configuration",
                                     top=5) # 5ドキュメントくらいかき集める問いがあった気がするので5
     search_products_response = search_products_client.search(query,
                                     query_language="ja-JP",
