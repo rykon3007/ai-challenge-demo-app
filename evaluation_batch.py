@@ -26,9 +26,11 @@ def main(path: str):
                 context, answer = rag_approach(question)
                 conetxt = context.replace("\n", " ")
                 answer = answer.replace("\n", " ")
+                print("context: ", "出力が長いため表示は省略してcsv書き込みのみ実行")
+                print("answer: ", answer)
                 # 生成した回答と正解をcsvに書き込む
                 output_file.write(f"\"{question}\",\"{ground_truth}\",\"{context}\",\"{answer}\"\n")
-                break
+                
 
 
 if __name__ == '__main__':
