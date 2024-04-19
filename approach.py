@@ -10,6 +10,7 @@ openai.api_base = os.environ["OPENAI_ENDPOINT"]
 openai.api_key = os.environ["OPENAI_API_KEY"]
 
 
+
 model_gpt_4_turbo = "gpt-4-turb"
 
 search_wikipedia_full_client = SearchClient(
@@ -99,7 +100,7 @@ def search(query: str) -> list[str]:
                                     query_language="ja-JP",
                                     top=2)
 
-    search_wikipedia_full_contents_and_location = [("場所:{}, 情報:{}",format(result["location_name"], result["content"])) for result in search_wikipedia_full_response]
+    search_wikipedia_full_contents_and_location = [("場所:{}, 情報:{}".format(result["location_name"], result["content"])) for result in search_wikipedia_full_response]
     wikipedia_chunked_contents = [result["chunk"] for result in search_wikipedia_chunked_response]
     products_name_and_description_and_jancode = ["商品名:{}, 説明文:{}, janコード:{}".format(result["name"], result["description"], result["jan_code"]) for result in search_products_response]
     # Wikipediaの内容と製品情報を結合
