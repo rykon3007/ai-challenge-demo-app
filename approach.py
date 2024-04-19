@@ -44,19 +44,20 @@ Use HTML table format for tabular data. No markdown. Answer in the same language
 Your thought process should be in English, but your responses should be in Japanese.
 """
 
-def rag_approach(query: str) -> str:
+def rag_approach(query: str) -> tuple[str, str]:
     """
     answer to query using RAG approach
     """
-    print("run rag_approach")
-    print("query: ", query)
+#    print("run rag_approach")
+#    print("query: ", query)
     summarized_query = query_generation(query)
-    print("summarized_query: ", summarized_query)
+#    print("summarized_query: ", summarized_query)
     search_results = search(summarized_query)
-    print("search_results: ", search_results)
+    context = " ".join(search_results)
+#    print("search_results: ", search_results)
     answer = answer_generation(query, search_results)
-    print("answer: ", answer)
-    return answer
+#    print("answer: ", answer)
+    return (context, answer)
 
 def rag_with_image(query: str, image: str) -> str:
     """
