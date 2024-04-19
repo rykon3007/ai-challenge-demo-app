@@ -3,12 +3,15 @@ import openai
 from azure.search.documents import SearchClient
 from azure.search.documents.models import QueryType
 from azure.core.credentials import AzureKeyCredential
+import tiktoken
+from tiktoken.core import Encoding
+
+encoding = tiktoken.encoding_for_model("gpt-4-turbo")
 
 openai.api_type = "azure"
 openai.api_version = "2024-02-15-preview"
 openai.api_base = os.environ["OPENAI_ENDPOINT"]
 openai.api_key = os.environ["OPENAI_API_KEY"]
-
 
 
 model_gpt_4_turbo = "gpt-4-turb"
@@ -88,27 +91,37 @@ def query_generation(query: str) -> str:
 def search(query: str) -> list[str]:
     search_wikipedia_full_response = search_wikipedia_full_client.search(query,
                                     query_language="ja-JP",
-                                    query_type=QueryType.SEMANTIC,
-                                    semantic_configuration_name="wikipedia-full-csv-index-semantic",
-                                    top=5)
+                                    top=1)
     search_wikipedia_chunked_response = search_wikipedia_chunked_client.search(query,
                                     query_language="ja-JP",
-                                    query_type=QueryType.SEMANTIC,
-                                    semantic_configuration_name="wikipedia-chunked-csv-index-semantic-configuration",
+                                    # query_type=QueryType.SEMANTIC,
+                                    # semantic_configuration_name="wikipedia-chunked-csv-index-semantic-configuration",
                                     top=5) # 5ドキュメントくらいかき集める問いがあった気がするので5
     search_products_response = search_products_client.search(query,
                                     query_language="ja-JP",
                                     top=2)
+    search_image_description_response = search_image_description_client.search(query,
+                                    query_language="ja-JP",
+                                    top=3)
 
     search_wikipedia_full_contents_and_location = [("場所:{}, 情報:{}".format(result["location_name"], result["content"])) for result in search_wikipedia_full_response]
-    wikipedia_chunked_contents = [result["chunk"] for result in search_wikipedia_chunked_response]
+    wikipedia_chunked_contents = [("場所:{}, 情報:{}".format(result["location_name"], result["content"])) for result in search_wikipedia_chunked_response]
     products_name_and_description_and_jancode = ["商品名:{}, 説明文:{}, janコード:{}".format(result["name"], result["description"], result["jan_code"]) for result in search_products_response]
+    image_descriptions = ["場所：{}, 画像説明:{}".format(result["location"], result["description"]) for result in search_image_description_response]
     # Wikipediaの内容と製品情報を結合
     wikipedia_source = "Wikipediaから以下のページの情報が得られました。{}".format("\n".join(search_wikipedia_full_contents_and_location))
-    wikipedia_chunked_source = "Wikipediaの切り抜きから以下の情報が得られました。{}".format("\n".join(wikipedia_chunked_contents))
-    products_source = "商品データベースから以下の情報が得られました。{}".format("\n".join(products_name_and_description_and_jancode))
+    wikipedia_chunked_source = "Wikipediaから以下の情報が得られました。{}".format("\n".join(wikipedia_chunked_contents)).replace("\n", "").replace("\t", "").replace(" ", "").replace("　", ""  )
+    products_source = "商品データベースから以下の情報が得られました。{}".format("\n".join(products_name_and_description_and_jancode)).replace("\n", "").replace("\t", "").replace(" ", "").replace("　", ""  )
+    image_source = "画像説明データベースから以下の情報が得られました。{}".format("\n".join(image_descriptions)).replace("\n", "").replace("\t", "").replace(" ", "").replace("　", ""  )
     # 文字列結合して返す
-    return "{}\n\n{}\n\n{}".format(wikipedia_source, wikipedia_chunked_source, products_source)
+    former = "{}{}{}".format(wikipedia_chunked_source, products_source, image_source)
+    former_tokens = encoding.encode(former)
+    later_tokens = encoding.encode(wikipedia_source)
+    if len(former_tokens) + len(later_tokens) < 120000:
+        return "{}{}".format(wikipedia_source, former)
+    else:
+        return former
+    # return "{}\n\n{}\n\n{}".format(wikipedia_source, wikipedia_chunked_source, products_source)
 
 # def search_with_image_caption(query: str, image_caption: str) -> list[str]:
 #     response = search_image_client(

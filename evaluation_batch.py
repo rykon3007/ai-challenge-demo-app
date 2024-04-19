@@ -10,9 +10,10 @@ def main(path: str):
     """
     画像以外の35問に対して、RAGアプローチで回答を生成する
     """
-    with open(output_filename, "w", encoding="utf-8") as output_file:
+    with open(output_filename, "w", encoding="utf-8", newline="") as output_file:
         # ヘッダーを書き込む
-        output_file.write("question,ground_truth,context,answer\n")
+        writer = csv.writer(output_file)
+        writer.writerow(["question","ground_truth","context","answer"])
         with open(path, "r", encoding="utf-8") as f:
             reader = csv.reader(f)
             # ヘッダーをスキップ
@@ -24,12 +25,10 @@ def main(path: str):
                 print("question: ", question)
                 print("ground_truth: ", ground_truth)
                 context, answer = rag_approach(question)
-                conetxt = context.replace("\n", " ")
-                answer = answer.replace("\n", " ")
                 print("context: ", "出力が長いため表示は省略してcsv書き込みのみ実行")
                 print("answer: ", answer)
                 # 生成した回答と正解をcsvに書き込む
-                output_file.write(f"\"{question}\",\"{ground_truth}\",\"{context}\",\"{answer}\"\n")
+                writer.writerow([row[0], row[1], context, answer])
                 
 
 
