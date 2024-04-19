@@ -1,6 +1,7 @@
 import os
 import openai
 from azure.search.documents import SearchClient
+from azure.search.documents.models import QueryType
 from azure.core.credentials import AzureKeyCredential
 
 openai.api_type = "azure"
@@ -83,20 +84,29 @@ def query_generation(query: str) -> str:
     return response.choices[0].message.content
 
 def search(query: str) -> list[str]:
-    # search_wikipedia_full_response = search_wikipedia_full_client.search(query,
-    #                                 query_language="ja-JP",
-    #                                 top=5)
+    search_wikipedia_full_response = search_wikipedia_full_client.search(query,
+                                    query_language="ja-JP",
+                                    query_type=QueryType.SEMANTIC,
+                                    semantic_configuration_name="wikipedia-full-csv-index-semantic",
+                                    top=5)
     search_wikipedia_chunked_response = search_wikipedia_chunked_client.search(query,
                                     query_language="ja-JP",
+                                    query_type=QueryType.SEMANTIC,
+                                    semantic_configuration_name="wikipedia-chunked-csv-index-semantic",
                                     top=5) # 5ドキュメントくらいかき集める問いがあった気がするので5
     search_products_response = search_products_client.search(query,
                                     query_language="ja-JP",
                                     top=2)
 
+    search_wikipedia_full_contents_and_location = [("場所:{}, 情報:{}",format(result["location_name"], result["content"])) for result in search_wikipedia_full_response]
     wikipedia_chunked_contents = [result["chunk"] for result in search_wikipedia_chunked_response]
-    products_contents = [result["name"] for result in search_products_response]
-    # 一旦そのまま文字列結合
-    return wikipedia_chunked_contents + products_contents
+    products_name_and_description_and_jancode = ["商品名:{}, 説明文:{}, janコード:{}".format(result["name"], result["description"], result["jan_code"]) for result in search_products_response]
+    # Wikipediaの内容と製品情報を結合
+    wikipedia_source = "Wikipediaから以下のページの情報が得られました。{}".format("\n".join(search_wikipedia_full_contents_and_location))
+    wikipedia_chunked_source = "Wikipediaの切り抜きから以下の情報が得られました。{}".format("\n".join(wikipedia_chunked_contents))
+    products_source = "商品データベースから以下の情報が得られました。{}".format("\n".join(products_name_and_description_and_jancode))
+    # 文字列結合して返す
+    return "{}\n\n{}\n\n{}".format(wikipedia_source, wikipedia_chunked_source, products_source)
 
 # def search_with_image_caption(query: str, image_caption: str) -> list[str]:
 #     response = search_image_client(
